@@ -44,8 +44,10 @@ pub fn tokenize(chars: Vec<char>) -> Vec<Token> {
                 _ => TokenKind::Invalid
             };
 
-            if kind == TokenKind::Invalid && start_index == usize::MAX {
-                start_index = i;
+            if kind == TokenKind::Invalid {
+                if start_index == usize::MAX {
+                    start_index = i;
+                }
             } else {
                 handle_last_token(&mut result, &chars, &mut start_index, i);
                 result.push(Token::new(kind, current_char.to_string()));
