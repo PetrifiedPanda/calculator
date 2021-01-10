@@ -1,3 +1,21 @@
+/*
+This is the grammar used by this parser:
+val_expr := add_sub_expr
+add_sub_expr := mul_div_expr (add_sub_op mul_div_expr)*
+mul_div_expr := unary_expr (mul_div_op unary_expr)*
+unary_expr := un_op? exp_expr
+exp_expr := atom ("^" atom)* 
+atom := NUM | bracket_expr | VAR_NAME
+bracket_expr := "(" val_expr ")"
+add_sub_op := "+" | "-"
+mul_div_op := "*" | "/"
+un_op := "-"
+var_expr := VAR_NAME "=" val_expr
+
+VAR_NAME := TODO: add more constraints
+NUM := numeric literal that can be parsed
+*/
+
 use std::collections::HashMap;
 
 use crate::tokenizer::Token;
