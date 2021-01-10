@@ -64,11 +64,12 @@ pub fn tokenize(chars: Vec<char>) -> Vec<Token> {
     return result;
 }
 
+// Tokenizes a multi-character token, whose end has been found through its succeeding single-character token
 fn handle_last_token(result: &mut Vec<Token>, chars: &Vec<char>, start_index: &mut usize, current_index: usize) {
     if *start_index != usize::MAX {
         let mut spelling = &chars[*start_index..current_index];
         if !all_spaces(&spelling) {
-            spelling = remove_whitespace(spelling);
+            spelling = trim(spelling);
             if is_number(&spelling) {
                 result.push(Token::new(TokenKind::Number, spelling.into_iter().collect()));
             } else {
@@ -91,21 +92,21 @@ fn is_number(s: &[char]) -> bool {
 
 fn all_spaces(s: &[char]) -> bool {
     for c in s {
-        if *c != ' ' && *c != '\n' {
+        if !c.is_whitespace() {
             return false;
         }
     }
     return true; 
 }
 
-fn remove_whitespace(string: &[char]) -> &[char] {
+fn trim(string: &[char]) -> &[char] {
     let mut front_index = 0;
-    while string[front_index] == ' ' {
+    while front_index < string.len() && string[front_index].is_whitespace() {
         front_index += 1;
     }
 
     let mut back_index = string.len() - 1;
-    while string[back_index] == ' ' || string[back_index] == '\n' {
+    while back_index >= 1 && string[back_index].is_whitespace() {
         back_index -= 1;
     }
 
