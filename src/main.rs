@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use parser::Parser;
 use tokenizer::Token;
 
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 
 fn main() {
     let mut parser = Parser::new();
