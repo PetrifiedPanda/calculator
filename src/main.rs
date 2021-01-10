@@ -7,14 +7,14 @@ use std::collections::HashMap;
 use parser::Parser;
 use tokenizer::Token;
 
-const DEBUG: bool = false;
+const DEBUG: bool = true;
 
 fn main() {
     let mut parser = Parser::new();
     loop {
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
-        let chars = input.chars().collect::<Vec<char>>();
+        let chars = input.trim().chars().collect::<Vec<char>>();
         let mut is_var_decl = false;
         if chars.contains(&'=') {
             is_var_decl = true;
