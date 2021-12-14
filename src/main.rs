@@ -27,7 +27,7 @@ fn main() {
         if is_var_decl {
             parser.parse_var_assignment();
             if DEBUG {
-                _print_hash_map(parser.get_var_tarble());
+                _print_hash_map(parser.get_var_table());
             }
         } else {
             println!("{}", parser.parse_val_expr());

@@ -57,7 +57,7 @@ impl Parser {
         self.next_token();
     }
 
-    pub fn get_var_tarble(&self) -> &HashMap<String, f64> {
+    pub fn get_var_table(&self) -> &HashMap<String, f64> {
         return &self.var_table;
     }
     
