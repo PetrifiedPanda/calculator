@@ -38,7 +38,7 @@ impl Parser {
     }
 
     fn next_token(&mut self) {
-        if self.tokens.len() > 0 {
+        if !self.tokens.is_empty() {
             self.current_token = self.tokens.remove(0)
         } else {
             self.current_token = Token::new(TokenKind::Invalid, "".to_string());
@@ -58,7 +58,7 @@ impl Parser {
     }
 
     pub fn get_var_table(&self) -> &HashMap<String, f64> {
-        return &self.var_table;
+        &self.var_table
     }
     
     pub fn parse_var_assignment(&mut self) {
@@ -70,7 +70,7 @@ impl Parser {
     }
 
     pub fn parse_val_expr(&mut self) -> f64 {
-        return self.parse_add_sub_expr();
+        self.parse_add_sub_expr()
     }
 
     fn parse_add_sub_expr(&mut self) -> f64 {
@@ -85,7 +85,7 @@ impl Parser {
                 result -= self.parse_mul_div_expr();
             }
         }
-        return result;
+        result
     }
 
     fn parse_mul_div_expr(&mut self) -> f64 {
@@ -100,15 +100,15 @@ impl Parser {
                 result /= self.parse_unary_expr();
             }
         }
-        return result;
+        result
     }
 
     fn parse_unary_expr(&mut self) -> f64 {
         if self.current_token.kind == TokenKind::Minus {
             self.accept_it();
-            return - self.parse_exp_expr();
+            - self.parse_exp_expr()
         } else {
-            return self.parse_exp_expr();
+            self.parse_exp_expr()
         }
     }
 
@@ -118,7 +118,7 @@ impl Parser {
             self.accept_it();
             result = result.powf(self.parse_atom());
         }
-        return result;
+        result
     }
 
     fn parse_atom(&mut self) -> f64 {
@@ -126,14 +126,15 @@ impl Parser {
             TokenKind::VarName => { 
                 let result = self.var_table[&self.current_token.spelling];
                 self.accept_it();
-                return result;
+                result
             },
             TokenKind::Number => {
                 let result = self.current_token.spelling.trim().parse().expect("Invalid number");
                 self.accept_it();
-                return result;
+                result
             },
-            TokenKind::LBracket => return self.parse_bracket_expr(),
+            TokenKind::LBracket => self.parse_bracket_expr(),
+
             _ => panic!("Expected {:?}, {:?} or {:?}, but got {:?}", TokenKind::VarName, TokenKind::Number, TokenKind::LBracket, self.current_token.kind)
         }
     }
@@ -142,7 +143,7 @@ impl Parser {
         self.accept(TokenKind::LBracket);
         let result = self.parse_val_expr();
         self.accept(TokenKind::RBracket);
-        return result;
+        result
     }
 
     fn register_variable(&mut self, var_name: String, value: f64) {

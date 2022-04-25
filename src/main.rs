@@ -35,7 +35,7 @@ fn main() {
     }
 }
 
-fn _print_tokens(tokens: &Vec<Token>) {
+fn _print_tokens(tokens: &[Token]) {
     for token in tokens {
         println!("kind: {:?}, spelling: {}", token.kind, token.spelling);
     }
