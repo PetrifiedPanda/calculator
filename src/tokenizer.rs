@@ -20,7 +20,7 @@ pub struct Token {
 
 impl Token {
     pub fn new(kind: TokenKind, spelling: String) -> Token {
-        Token { kind: kind, spelling: spelling }
+        Token { kind, spelling }
     }
 }
 
