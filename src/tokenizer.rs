@@ -28,7 +28,7 @@ impl Token {
 pub fn tokenize(chars: Vec<char>) -> Vec<Token> {
     let mut result: Vec<Token> = Vec::new();
 
-    if chars.len() > 0 {
+    if !chars.is_empty() {
         let mut start_index: usize = usize::MAX;
         for i in 0..chars.len() {
             let current_char = chars[i];
@@ -61,19 +61,19 @@ pub fn tokenize(chars: Vec<char>) -> Vec<Token> {
         result.push(Token::new(TokenKind::Invalid, "".to_string()));
     }
 
-    return result;
+    result
 }
 
 // Tokenizes a multi-character token, whose end has been found through its succeeding single-character token
-fn handle_last_token(result: &mut Vec<Token>, chars: &Vec<char>, start_index: &mut usize, current_index: usize) {
+fn handle_last_token(result: &mut Vec<Token>, chars: &[char], start_index: &mut usize, current_index: usize) {
     if *start_index != usize::MAX {
         let mut spelling = &chars[*start_index..current_index];
-        if !all_spaces(&spelling) {
+        if !all_spaces(spelling) {
             spelling = trim(spelling);
-            if is_number(&spelling) {
-                result.push(Token::new(TokenKind::Number, spelling.into_iter().collect()));
+            if is_number(spelling) {
+                result.push(Token::new(TokenKind::Number, spelling.iter().collect()));
             } else {
-                result.push(Token::new(TokenKind::VarName, spelling.into_iter().collect()));
+                result.push(Token::new(TokenKind::VarName, spelling.iter().collect()));
             }
         }
 
@@ -87,7 +87,7 @@ fn is_number(s: &[char]) -> bool {
             return false;
         }
     }
-    return true;
+    true
 }
 
 fn all_spaces(s: &[char]) -> bool {
@@ -96,7 +96,7 @@ fn all_spaces(s: &[char]) -> bool {
             return false;
         }
     }
-    return true; 
+    true
 }
 
 fn trim(string: &[char]) -> &[char] {
@@ -110,5 +110,5 @@ fn trim(string: &[char]) -> &[char] {
         back_index -= 1;
     }
 
-    return &string[front_index..back_index + 1];
+    &string[front_index..back_index + 1]
 }
