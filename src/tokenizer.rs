@@ -10,7 +10,8 @@ pub enum TokenKind {
     Div,
     Exp,
     LBracket,
-    RBracket
+    RBracket,
+    Quit,
 }
 
 pub struct Token {
@@ -72,6 +73,8 @@ fn handle_last_token(result: &mut Vec<Token>, chars: &[char], start_index: &mut 
             spelling = trim(spelling);
             if is_number(spelling) {
                 result.push(Token::new(TokenKind::Number, spelling.iter().collect()));
+            } else if spelling.iter().collect::<String>().as_str() == "quit" {
+                result.push(Token::new(TokenKind::Quit, spelling.iter().collect()));
             } else {
                 result.push(Token::new(TokenKind::VarName, spelling.iter().collect()));
             }

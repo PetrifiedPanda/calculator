@@ -12,6 +12,8 @@ mul_div_op := "*" | "/"
 un_op := "-"
 var_expr := VAR_NAME "=" val_expr
 
+translation_unit := var_expr | val_expr | quit
+
 VAR_NAME := TODO: add more constraints
 NUM := numeric literal that can be parsed
 */
@@ -25,6 +27,12 @@ pub struct Parser {
     tokens: Vec<Token>,
     current_token: Token,
     var_table: HashMap<String, f64>
+}
+
+pub enum ParserResult {
+    Value(f64),
+    VarAssign,
+    Quit
 }
 
 impl Parser {
@@ -59,6 +67,25 @@ impl Parser {
 
     pub fn get_var_table(&self) -> &HashMap<String, f64> {
         &self.var_table
+    }
+
+    pub fn parse_translation_unit(&mut self) -> ParserResult {
+        match &self.current_token.kind {
+            TokenKind::VarName => {
+                if self.tokens[0].kind != TokenKind::Equals {
+                    ParserResult::Value(self.parse_val_expr())
+                } else {
+                    self.parse_var_assignment();
+                    ParserResult::VarAssign
+                }
+            },
+
+            TokenKind::Quit => {
+               ParserResult::Quit
+            },
+
+            _ => ParserResult::Value(self.parse_val_expr())
+        }
     }
     
     pub fn parse_var_assignment(&mut self) {

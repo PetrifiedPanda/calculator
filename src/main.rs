@@ -5,6 +5,7 @@ use std::io;
 use std::collections::HashMap;
 
 use parser::Parser;
+use parser::ParserResult;
 use tokenizer::Token;
 
 const DEBUG: bool = false;
@@ -14,23 +15,26 @@ fn main() {
     loop {
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
-        let chars = input.trim().chars().collect::<Vec<char>>();
-        let mut is_var_decl = false;
-        if chars.contains(&'=') {
-            is_var_decl = true;
-        }
+        let chars = input.trim().chars().collect::<Vec<char>>(); 
         let tokens = tokenizer::tokenize(chars);
         if DEBUG {
             _print_tokens(&tokens);
         }
         parser.set_tokens(tokens);
-        if is_var_decl {
-            parser.parse_var_assignment();
-            if DEBUG {
-                _print_hash_map(parser.get_var_table());
+        let res = parser.parse_translation_unit();
+        match res {
+            ParserResult::Value(val) => println!("{}", val),
+            ParserResult::VarAssign => {
+                if DEBUG {
+                    _print_hash_map(parser.get_var_table());
+                }
             }
-        } else {
-            println!("{}", parser.parse_val_expr());
+            ParserResult::Quit => {
+                if DEBUG {
+                    println!("Quitting");
+                }
+                break;
+            }
         }
     }
 }
