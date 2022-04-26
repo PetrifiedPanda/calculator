@@ -29,7 +29,7 @@ pub fn tokenize(chars: Vec<char>) -> Vec<Token> {
     let mut result: Vec<Token> = Vec::new();
 
     if !chars.is_empty() {
-        let mut start_index: usize = usize::MAX;
+        let mut start_index: Option<usize> = None;
         for i in 0..chars.len() {
             let current_char = chars[i];
             let kind = match current_char {
@@ -45,8 +45,8 @@ pub fn tokenize(chars: Vec<char>) -> Vec<Token> {
             };
 
             if kind == TokenKind::Invalid {
-                if start_index == usize::MAX {
-                    start_index = i;
+                if start_index.is_none() {
+                    start_index = Some(i);
                 }
             } else {
                 handle_last_token(&mut result, &chars, &mut start_index, i);
@@ -54,7 +54,7 @@ pub fn tokenize(chars: Vec<char>) -> Vec<Token> {
             }
         }
 
-        if start_index != usize::MAX {
+        if start_index.is_some() {
             handle_last_token(&mut result, &chars, &mut start_index, chars.len());
         }
     } else {
@@ -65,9 +65,9 @@ pub fn tokenize(chars: Vec<char>) -> Vec<Token> {
 }
 
 // Tokenizes a multi-character token, whose end has been found through its succeeding single-character token
-fn handle_last_token(result: &mut Vec<Token>, chars: &[char], start_index: &mut usize, current_index: usize) {
-    if *start_index != usize::MAX {
-        let mut spelling = &chars[*start_index..current_index];
+fn handle_last_token(result: &mut Vec<Token>, chars: &[char], start_index: &mut Option<usize>, current_index: usize) {
+    if let Some(start) = *start_index {
+        let mut spelling = &chars[start..current_index];
         if !all_spaces(spelling) {
             spelling = trim(spelling);
             if is_number(spelling) {
@@ -77,7 +77,7 @@ fn handle_last_token(result: &mut Vec<Token>, chars: &[char], start_index: &mut 
             }
         }
 
-        *start_index = usize::MAX;
+        *start_index = None;
     }
 }
 
