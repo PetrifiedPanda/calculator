@@ -1,12 +1,12 @@
 #[derive(PartialEq, Debug)]
-pub enum TokenKind {
+pub enum Token {
     Invalid,
-    VarName,
-    Number,
+    VarName(String),
+    Number(f64),
     Equals,
-    Plus,
-    Minus,
-    Mult,
+    Add,
+    Sub,
+    Mul,
     Div,
     Exp,
     LBracket,
@@ -14,16 +14,16 @@ pub enum TokenKind {
     Quit,
 }
 
-pub struct Token {
-    pub kind: TokenKind,
-    pub spelling: String,
-}
-
 impl Token {
-    pub fn new(kind: TokenKind, spelling: String) -> Token {
-        Token { kind, spelling }
+    pub fn same_type(&self, other: &Token) -> bool {
+        match self {
+            Token::VarName(_) => matches!(other, Token::VarName(_)),
+            Token::Number(_) => matches!(other, Token::Number(_)),
+            _ => self == other,
+        }
     }
 }
+
 
 // TODO: Add better checks for variable names
 pub fn tokenize(chars: Vec<char>) -> Vec<Token> {
@@ -33,25 +33,28 @@ pub fn tokenize(chars: Vec<char>) -> Vec<Token> {
         let mut start_index: Option<usize> = None;
         for i in 0..chars.len() {
             let current_char = chars[i];
-            let kind = match current_char {
-                '=' => TokenKind::Equals,
-                '+' => TokenKind::Plus,
-                '-' => TokenKind::Minus,
-                '*' => TokenKind::Mult,
-                '/' => TokenKind::Div,
-                '^' => TokenKind::Exp,
-                '(' => TokenKind::LBracket,
-                ')' => TokenKind::RBracket,
-                _ => TokenKind::Invalid
+            let tok = match current_char {
+                '=' => Token::Equals,
+                '+' => Token::Add,
+                '-' => Token::Sub,
+                '*' => Token::Mul,
+                '/' => Token::Div,
+                '^' => Token::Exp,
+                '(' => Token::LBracket,
+                ')' => Token::RBracket,
+                _ => Token::Invalid
             };
-
-            if kind == TokenKind::Invalid {
-                if start_index.is_none() {
-                    start_index = Some(i);
+            
+            match tok {
+                Token::Invalid => {
+                    if start_index.is_none() {
+                        start_index = Some(i);
+                    }
+                },
+                _ => {
+                    handle_last_token(&mut result, &chars, &mut start_index, i);
+                    result.push(tok);
                 }
-            } else {
-                handle_last_token(&mut result, &chars, &mut start_index, i);
-                result.push(Token::new(kind, current_char.to_string()));
             }
         }
 
@@ -59,7 +62,7 @@ pub fn tokenize(chars: Vec<char>) -> Vec<Token> {
             handle_last_token(&mut result, &chars, &mut start_index, chars.len());
         }
     } else {
-        result.push(Token::new(TokenKind::Invalid, "".to_string()));
+        result.push(Token::Invalid);
     }
 
     result
@@ -72,11 +75,12 @@ fn handle_last_token(result: &mut Vec<Token>, chars: &[char], start_index: &mut 
         if !all_spaces(spelling) {
             spelling = trim(spelling);
             if is_number(spelling) {
-                result.push(Token::new(TokenKind::Number, spelling.iter().collect()));
+                let spell = spelling.iter().collect::<String>(); // TODO: collect might not be necessary
+                result.push(Token::Number(spell.parse().expect("Invalid number")));
             } else if spelling.iter().collect::<String>().as_str() == "quit" {
-                result.push(Token::new(TokenKind::Quit, spelling.iter().collect()));
+                result.push(Token::Quit);
             } else {
-                result.push(Token::new(TokenKind::VarName, spelling.iter().collect()));
+                result.push(Token::VarName(spelling.iter().collect()));
             }
         }
 

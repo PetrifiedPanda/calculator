@@ -21,7 +21,6 @@ NUM := numeric literal that can be parsed
 use std::collections::HashMap;
 
 use crate::tokenizer::Token;
-use crate::tokenizer::TokenKind;
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -37,7 +36,7 @@ pub enum ParserResult {
 
 impl Parser {
     pub fn new() -> Parser {
-        Parser {tokens: Vec::new(), current_token: Token::new(TokenKind::Invalid, "".to_string()), var_table: HashMap::new()}
+        Parser {tokens: Vec::new(), current_token: Token::Invalid, var_table: HashMap::new()}
     }
 
     pub fn set_tokens(&mut self, tokens: Vec<Token>) {
@@ -49,15 +48,15 @@ impl Parser {
         if !self.tokens.is_empty() {
             self.current_token = self.tokens.remove(0)
         } else {
-            self.current_token = Token::new(TokenKind::Invalid, "".to_string());
+            self.current_token = Token::Invalid;
         }
     }
 
-    fn accept(&mut self, expected_type: TokenKind) {
-        if self.current_token.kind == expected_type {
-            self.next_token();
+    fn accept(&mut self, expected_type: Token) {
+        if self.current_token.same_type(&expected_type) {
+            self.next_token(); 
         } else {
-            panic!("Expected Token of type {:?} but got type {:?}", expected_type, self.current_token.kind);
+            panic!("Expected Token of type {:?} but got type {:?}", expected_type, self.current_token);
         }
     }
 
@@ -70,9 +69,9 @@ impl Parser {
     }
 
     pub fn parse_translation_unit(&mut self) -> ParserResult {
-        match &self.current_token.kind {
-            TokenKind::VarName => {
-                if self.tokens[0].kind != TokenKind::Equals {
+        match &self.current_token {
+            Token::VarName(_) => {
+                if self.tokens[0] != Token::Equals {
                     ParserResult::Value(self.parse_val_expr())
                 } else {
                     self.parse_var_assignment();
@@ -80,7 +79,7 @@ impl Parser {
                 }
             },
 
-            TokenKind::Quit => {
+            Token::Quit => {
                ParserResult::Quit
             },
 
@@ -89,9 +88,12 @@ impl Parser {
     }
     
     pub fn parse_var_assignment(&mut self) {
-        let var_name = self.current_token.spelling.clone(); // Find a way to move this
-        self.accept(TokenKind::VarName);
-        self.accept(TokenKind::Equals);
+        let var_name = match &self.current_token {
+            Token::VarName(name) => name.clone(),
+            _ => panic!("Expected a VarName but got {:?}", self.current_token),
+        };
+        self.accept(Token::VarName("".to_string()));
+        self.accept(Token::Equals);
         let var_value = self.parse_val_expr();
         self.register_variable(var_name, var_value);
     }
@@ -102,14 +104,17 @@ impl Parser {
 
     fn parse_add_sub_expr(&mut self) -> f64 {
         let mut result = self.parse_mul_div_expr();
-        while self.current_token.kind == TokenKind::Plus || self.current_token.kind == TokenKind::Minus {
-            let op_type = &self.current_token.kind;
-            if *op_type == TokenKind::Plus {
-                self.accept_it();
-                result += self.parse_mul_div_expr();
-            } else {
-                self.accept_it();
-                result -= self.parse_mul_div_expr();
+        while self.current_token == Token::Add || self.current_token == Token::Sub {
+            match &self.current_token {
+                Token::Add => {
+                    self.accept_it();
+                    result += self.parse_mul_div_expr();
+                },
+                Token::Sub => {
+                    self.accept_it();
+                    result -= self.parse_mul_div_expr();
+                }
+                _ => unreachable!(),
             }
         }
         result
@@ -117,31 +122,37 @@ impl Parser {
 
     fn parse_mul_div_expr(&mut self) -> f64 {
         let mut result = self.parse_unary_expr();
-        while self.current_token.kind == TokenKind::Mult || self.current_token.kind == TokenKind::Div {
-            let op_type = &self.current_token.kind;
-            if *op_type == TokenKind::Mult {
-                self.accept_it();
-                result *= self.parse_unary_expr();
-            } else {
-                self.accept_it();
-                result /= self.parse_unary_expr();
+        while self.current_token == Token::Mul || self.current_token == Token::Div {
+            match self.current_token {
+                Token::Mul => {
+                    self.accept_it();
+                    result *= self.parse_unary_expr();
+                },
+                Token::Div => {
+                    self.accept_it();
+                    result /= self.parse_unary_expr();
+                },
+                _ => unreachable!(),
             }
         }
         result
     }
 
     fn parse_unary_expr(&mut self) -> f64 {
-        if self.current_token.kind == TokenKind::Minus {
-            self.accept_it();
-            - self.parse_exp_expr()
-        } else {
-            self.parse_exp_expr()
+        match self.current_token {
+            Token::Sub => {
+                self.accept_it();
+                return - self.parse_exp_expr();
+            },
+            _ => {
+                return self.parse_exp_expr();
+            }
         }
     }
 
     fn parse_exp_expr(&mut self) -> f64 {
         let mut result = self.parse_atom();
-        while self.current_token.kind == TokenKind::Exp {
+        while self.current_token == Token::Exp {
             self.accept_it();
             result = result.powf(self.parse_atom());
         }
@@ -149,27 +160,27 @@ impl Parser {
     }
 
     fn parse_atom(&mut self) -> f64 {
-        match self.current_token.kind {
-            TokenKind::VarName => { 
-                let result = self.var_table[&self.current_token.spelling];
+        match &self.current_token {
+            Token::VarName(spelling) => { 
+                let result = self.var_table[spelling];
                 self.accept_it();
                 result
             },
-            TokenKind::Number => {
-                let result = self.current_token.spelling.trim().parse().expect("Invalid number");
+            Token::Number(val) => {
+                let res = *val;
                 self.accept_it();
-                result
+                res            
             },
-            TokenKind::LBracket => self.parse_bracket_expr(),
+            Token::LBracket => self.parse_bracket_expr(),
 
-            _ => panic!("Expected {:?}, {:?} or {:?}, but got {:?}", TokenKind::VarName, TokenKind::Number, TokenKind::LBracket, self.current_token.kind)
+            _ => panic!("Expected {:?}, {:?} or {:?}, but got {:?}", Token::VarName("".to_string()), Token::Number(0.0), Token::LBracket, self.current_token)
         }
     }
 
     fn parse_bracket_expr(&mut self) -> f64 {
-        self.accept(TokenKind::LBracket);
+        self.accept(Token::LBracket);
         let result = self.parse_val_expr();
-        self.accept(TokenKind::RBracket);
+        self.accept(Token::RBracket);
         result
     }
 

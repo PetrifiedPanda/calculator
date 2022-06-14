@@ -12,9 +12,11 @@ const DEBUG: bool = false;
 
 fn main() {
     let mut parser = Parser::new();
+
+    let stdin = io::stdin();
     loop {
         let mut input = String::new();
-        io::stdin().read_line(&mut input).expect("Failed to read line");
+        stdin.read_line(&mut input).expect("Failed to read line");
         let chars = input.trim().chars().collect::<Vec<char>>(); 
         let tokens = tokenizer::tokenize(chars);
         if DEBUG {
@@ -41,7 +43,7 @@ fn main() {
 
 fn _print_tokens(tokens: &[Token]) {
     for token in tokens {
-        println!("kind: {:?}, spelling: {}", token.kind, token.spelling);
+        println!("{:?}", token);
     }
 }
 
