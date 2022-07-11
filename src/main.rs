@@ -25,17 +25,22 @@ fn main() {
         parser.set_tokens(tokens);
         let res = parser.parse_translation_unit();
         match res {
-            ParserResult::Value(val) => println!("{}", val),
-            ParserResult::VarAssign => {
-                if DEBUG {
-                    _print_hash_map(parser.get_var_table());
+            Ok(res) => match res {
+                ParserResult::Value(val) => println!("{}", val),
+                ParserResult::VarAssign => {
+                    if DEBUG {
+                        _print_hash_map(parser.get_var_table());
+                    }
                 }
-            }
-            ParserResult::Quit => {
-                if DEBUG {
-                    println!("Quitting");
+                ParserResult::Quit => {
+                    if DEBUG {
+                        println!("Quitting");
+                    }
+                    break;
                 }
-                break;
+            },
+            Err(err) => {
+                err.print();
             }
         }
     }

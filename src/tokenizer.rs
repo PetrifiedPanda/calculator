@@ -24,6 +24,25 @@ impl Token {
     }
 }
 
+impl Clone for Token {
+    fn clone(&self) -> Self {
+        match self {
+            Token::VarName(spell) => Token::VarName(spell.clone()),
+            Token::Number(num) => Token::Number(*num),
+            Token::Invalid => Token::Invalid,
+            Token::Equals => Token::Equals,
+            Token::Add => Token::Add,
+            Token::Sub => Token::Sub,
+            Token::Mul => Token::Mul,
+            Token::Div => Token::Div,
+            Token::Exp => Token::Exp,
+            Token::LBracket => Token::LBracket,
+            Token::RBracket => Token::RBracket,
+            Token::Quit => Token::Quit,
+        }
+    }
+}
+
 
 // TODO: Add better checks for variable names
 pub fn tokenize(chars: Vec<char>) -> Vec<Token> {
