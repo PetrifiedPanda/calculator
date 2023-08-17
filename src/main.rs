@@ -1,8 +1,8 @@
-mod tokenizer;
 mod parser;
+mod tokenizer;
 
-use std::io;
 use std::collections::HashMap;
+use std::io;
 
 use parser::Parser;
 use parser::ParserResult;
@@ -17,7 +17,7 @@ fn main() {
     loop {
         let mut input = String::new();
         stdin.read_line(&mut input).expect("Failed to read line");
-        let chars = input.trim().chars().collect::<Vec<char>>(); 
+        let chars = input.trim().chars().collect::<Vec<char>>();
         let tokens = tokenizer::tokenize(chars);
         if DEBUG {
             _print_tokens(&tokens);
